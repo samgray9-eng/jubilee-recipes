@@ -206,9 +206,9 @@ app.get('/api/recipes', async (req, res) => {
   }
 
   try {
-    const response = await axios.get(
-      'https://api.spoonacular.com/recipes/complexSearch',
-      {
+    // Run recipe search and wine pairing lookup in parallel
+    const [searchResp, wineResp] = await Promise.all([
+      axios.get('https://api.spoonacular.com/recipes/complexSearch', {
         params: {
           includeIngredients: ingredients,
           sort: 'popularity',
@@ -219,10 +219,24 @@ app.get('/api/recipes', async (req, res) => {
           apiKey: SPOONACULAR_KEY,
         },
         timeout: 15000,
-      }
-    );
+      }),
+      axios.get('https://api.spoonacular.com/food/wine/pairing', {
+        params: {
+          food: ingredients.split(',')[0].trim(), // pair on primary ingredient
+          apiKey: SPOONACULAR_KEY,
+        },
+        timeout: 10000,
+      }).catch(() => null), // wine pairing is best-effort
+    ]);
 
-    const recipes = (response.data.results || []).map((r) => ({
+    const winePairing = wineResp?.data?.pairedWines?.length
+      ? {
+          wines: wineResp.data.pairedWines.slice(0, 3),
+          text: wineResp.data.pairingText || null,
+        }
+      : null;
+
+    const recipes = (searchResp.data.results || []).map((r) => ({
       id: r.id,
       title: r.title,
       image: r.image || null,
@@ -232,9 +246,10 @@ app.get('/api/recipes', async (req, res) => {
       sourceUrl: r.sourceUrl || `https://spoonacular.com/recipes/${r.id}`,
       cuisines: r.cuisines || [],
       dishTypes: r.dishTypes || [],
+      winePairing,
     }));
 
-    res.json({ recipes, totalResults: response.data.totalResults });
+    res.json({ recipes, totalResults: searchResp.data.totalResults });
   } catch (err) {
     const status = err.response?.status;
     const msg =

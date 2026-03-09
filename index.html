@@ -346,6 +346,27 @@
       flex-shrink: 0;
     }
 
+    /* Wine pairing */
+    .wine-pairing {
+      display: flex;
+      align-items: flex-start;
+      gap: .4rem;
+      font-size: .75rem;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-bottom: .2rem;
+    }
+    .wine-pairing svg {
+      width: 13px; height: 13px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      color: #7c3f6e;
+    }
+    .wine-pairing strong {
+      color: #7c3f6e;
+      font-weight: 600;
+    }
+
     /* CTA — text link with arrow, no button */
     .card-link {
       align-self: flex-start;
@@ -647,6 +668,14 @@ function recipeCard(r) {
     ? `<div class="card-meta">${metaParts.map(escHtml).join('<span class="dot">·</span>')}</div>`
     : '';
 
+  const wineIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8M12 11v11M6 2h12l-2 7a4 4 0 01-8 0L6 2z"/></svg>`;
+  const wineHtml = r.winePairing
+    ? `<div class="wine-pairing" ${r.winePairing.text ? `title="${escHtml(r.winePairing.text)}"` : ''}>
+        ${wineIcon}
+        <span><strong>Pairs with</strong> ${escHtml(r.winePairing.wines.map(w => w.replace(/\b\w/g, c => c.toUpperCase())).join(', '))}</span>
+       </div>`
+    : '';
+
   return `
     <article class="card" role="listitem">
       <a class="card-img-wrap" href="${url}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
@@ -659,6 +688,7 @@ function recipeCard(r) {
         </a>
         ${ratingHtml}
         ${metaHtml}
+        ${wineHtml}
         <a class="card-link" href="${url}" target="_blank" rel="noopener">View recipe &rarr;</a>
       </div>
     </article>`;
