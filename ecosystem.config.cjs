@@ -10,7 +10,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3001,
-        SPOONACULAR_KEY: 'REDACTED',
+        SPOONACULAR_KEY: process.env.SPOONACULAR_KEY || '',
       },
     },
   ],
